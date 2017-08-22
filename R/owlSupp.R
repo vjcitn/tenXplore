@@ -1,4 +1,5 @@
 #' manage ontological data with tags and a DataFrame instance
+#' @importFrom Biobase selectSome
 #' @exportClass TermSet
 setClass("TermSet", representation(ontoURLs="character", 
    cleanFrame="DataFrame"))
@@ -14,8 +15,7 @@ setValidity("TermSet", function(object) {
 #' @exportMethod show
 setMethod("show", "TermSet", function(object) {
 cat(sprintf("TermSet for %d terms\n", length(object@ontoURLs)))
-cat("cleanFrame component (minus qualTerms):\n")
-print(object@cleanFrame[,1:3])
+cat(paste(selectSome(object@cleanFrame[,"clean"]), collapse=", "), "\n")
 })
 setMethod("c", "TermSet", function(x, ...) {
   if (missing(x)) args = unname(list(...))
@@ -36,7 +36,7 @@ setMethod("c", "TermSet", function(x, ...) {
 #' @param world RDF world instance as defined in redland package
 #' @examples
 #' if (!exists(".efosupp")) .efosupp = buildEFOntSupport()
-#' siblings_URL( model=.efosupp@model, world=.efosupp@world )
+#' siblings_URL( model=getModel(.efosupp), world=getWorld(.efosupp))
 #' @export
 siblings_URL = function(urlstring="<http://www.ebi.ac.uk/efo/EFO_1001209>", model,
    world) {
@@ -77,7 +77,9 @@ siblings_URL = function(urlstring="<http://www.ebi.ac.uk/efo/EFO_1001209>", mode
 }
 
 #' acquire the label of an ontology subject tag
-#' 
+#' @rdname siblings_URL
+#' @aliases label_URL
+#' @export
 label_URL = function(urlstring="<http://www.ebi.ac.uk/efo/EFO_0000311>", model, world) {
   tstr = sprintf("SELECT ?c WHERE {%s <http://www.w3.org/2000/01/rdf-schema#label> ?c}", urlstring)
   squery <- new("Query", world, tstr, base_uri=NULL, query_language="sparql", query_uri=NULL)
@@ -89,6 +91,10 @@ stripQual = function(x) gsub("(.*)\\^\\^.*", "\\1", x)
 stripLang = function(x) gsub("(.*)@.*", "\\1", x)
 getString = function(x) gsub("\\\"", "", stripQual(stripLang(x)))
 
+#' acquire the label of an ontology subject tag
+#' @rdname siblings_URL
+#' @aliases children_URL
+#' @export
 children_URL = function(urlstring="<http://www.ebi.ac.uk/efo/EFO_0000787>", model,
    world) {
    childQstr = sprintf("SELECT ?a WHERE {?a <http://www.w3.org/2000/01/rdf-schema#subClassOf> %s}", urlstring)

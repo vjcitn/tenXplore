@@ -1,5 +1,17 @@
 #' @exportClass rrdfSupport
 setClass("rrdfSupport", representation(model="ANY", world="ANY"))
+setMethod("show", "rrdfSupport", function(object) {
+  cat("rrdfSupport instance from tenXplore\n")
+  cat(sprintf("there are %d class statements\n", countClasses(object)))
+})
+
+#' accessors for rrdfSupport
+#' @export
+getModel = function(x) x@model
+#' @rdname getModel
+#' @aliases getWorld
+#' @export
+getWorld = function(x) x@world
 
 #' read and model the Experimental Factor Ontology as shipped in OWL and parsed in redland
 #' @export
@@ -26,7 +38,7 @@ buildCellOntSupport = function() {
 secLevGen = function( TermSet, choices, rrdfsupp ) {
    inds = match(choices, TermSet@cleanFrame$clean)
    set = lapply(inds, function(x) 
-     try(children_URL(TermSet@cleanFrame$url[x], model=rrdfsupp@model, world=rrdfsupp@world), silent=TRUE))
+     try(children_URL(TermSet@cleanFrame$url[x], model=getModel(rrdfsupp), world=getWorld(rrdfsupp)), silent=TRUE))
    chk = sapply(set, function(x) inherits(x, "try-error"))
    if (any(chk)) set = set[-which(chk)]
    if (length(set)==1) return(set[[1]])
@@ -44,16 +56,22 @@ nestedL = function(vec, clsupp, inSE) {
     helpText(paste("Cell subtype -- on click a dropdown is produced and multiple",
       "cell type names from Cell Ontology are available, annotated as subclasses of top level selections.")),
     uiOutput("secLevUI"),
+    selectInput("trans", "Transformation", choices=c("ident.", "log(x+1)"),
+          selected="ident.", selectize=FALSE),
+    numericInput("nsamp", "# 10x samples", 100, min=100, max=3000, step=50),
     numericInput("pc1", "pc axis 1", 1, min=1, max=10, step=1),
-    numericInput("pc2", "pc axis 2", 1, min=2, max=10, step=1)
+    numericInput("pc2", "pc axis 2", 2, min=2, max=10, step=1)
     ),
   mainPanel(
    tabsetPanel(
-    tabPanel("PCA", plotOutput("pcs")),
-    tabPanel("agrep",
+    tabPanel("PCA", 
+      tableOutput("def"),
+      plotOutput("pcs")
+        ),
+    tabPanel("Cell:~:GO",
      dataTableOutput("godt")
      ),
-    tabPanel("basics",
+    tabPanel("Subtype",
      helpText(sprintf("%d top level cats\n", length(vec))),
      textOutput("getSecLNum"),
      dataTableOutput("thedt")
@@ -63,6 +81,12 @@ nestedL = function(vec, clsupp, inSE) {
   )
  )
  server = function(input, output) {
+  output$def = renderTable( {
+     validate(need(input$secLevel, "select second order term"))
+     goinds = lapply(input$secLevel, function(x) agrep( x, allGOterms[,2] ) ) 
+     tabs = lapply(goinds, function(x) allGOterms[x,])
+     data.frame(subtype=input$secLevel , nterms=sapply(tabs,nrow))
+     } )
   output$getSecLNum = renderText({
    validate(need(input$topLevel, "select top level term"))
    ss = secLevGen(CellTypes, input$topLevel, clsupp)
@@ -85,11 +109,14 @@ nestedL = function(vec, clsupp, inSE) {
   })
   output$pcs = renderPlot({
    allg = godtSetup()$genes
-   data = t(assay(finse <- inSE[na.omit(match(allg, rowData(inSE)$symbol)),1:30]))
+   data = t(assay(finse <- inSE[na.omit(match(allg, rowData(inSE)$symbol)),1:input$nsamp]))
+   if (input$trans == "log(x+1)") data = log(data+1)
    syms = make.names(rowData(finse)$symbol, unique=TRUE)
    colnames(data) = syms
    pcs = prcomp(data)
-   biplot(pcs, xlabs=rep("x", nrow(data)), choices=c(input$pc1, input$pc2))
+   suppressWarnings(  # arrow warnings
+     biplot(pcs, xlabs=rep("x", nrow(data)), choices=c(input$pc1, input$pc2))
+     )
    })
   output$godt = renderDataTable( godtSetup()$dataframe )
   output$thedt = renderDataTable({
@@ -97,7 +124,7 @@ nestedL = function(vec, clsupp, inSE) {
    ss = secLevGen(CellTypes, input$topLevel, clsupp)
    allchoices = ss@cleanFrame[,"clean"]
    validate(need(input$secLevel, "select second order term"))
-   cbind(sec=input$secLevel,as.data.frame(ss@cleanFrame))
+   as.data.frame(ss@cleanFrame)
    })
   output$secLevUI = renderUI({
    validate(need(input$topLevel, "select top level term"))
@@ -114,7 +141,7 @@ runApp(app)
 #' basic shiny interface to 10x data with ontological setup for cell selection
 #' @export
 tenXplore = function() {
-if (!exists("remouse")) remouse=se1.3M()
+if (!exists("remouse")) remouse <<- se1.3M()
 data("allGOterms")
 data("CellTypes")
 clsupp = buildCellOntSupport()

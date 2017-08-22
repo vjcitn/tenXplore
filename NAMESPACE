@@ -2,8 +2,13 @@
 
 export(buildCellOntSupport)
 export(buildEFOOntSupport)
+export(children_URL)
+export(getModel)
+export(getWorld)
+export(label_URL)
 export(siblings_URL)
 export(tenXplore)
 exportClasses(TermSet)
 exportClasses(rrdfSupport)
 exportMethods(show)
+importFrom(Biobase,selectSome)

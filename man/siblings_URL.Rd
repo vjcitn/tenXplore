@@ -2,9 +2,16 @@
 % Please edit documentation in R/owlSupp.R
 \name{siblings_URL}
 \alias{siblings_URL}
+\alias{label_URL}
+\alias{children_URL}
 \title{generate a TermSet with siblings of a given term}
 \usage{
 siblings_URL(urlstring = "<http://www.ebi.ac.uk/efo/EFO_1001209>", model,
+  world)
+
+label_URL(urlstring = "<http://www.ebi.ac.uk/efo/EFO_0000311>", model, world)
+
+children_URL(urlstring = "<http://www.ebi.ac.uk/efo/EFO_0000787>", model,
   world)
 }
 \arguments{
@@ -16,8 +23,12 @@ siblings_URL(urlstring = "<http://www.ebi.ac.uk/efo/EFO_1001209>", model,
 }
 \description{
 generate a TermSet with siblings of a given term
+
+acquire the label of an ontology subject tag
+
+acquire the label of an ontology subject tag
 }
 \examples{
 if (!exists(".efosupp")) .efosupp = buildEFOntSupport()
-siblings_URL( model=.efosupp@model, world=.efosupp@world )
+siblings_URL( model=getModel(.efosupp), world=getWorld(.efosupp))
 }

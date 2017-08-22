@@ -1,0 +1,96 @@
+---
+title: "tenXplore: ontology for scRNA-seq, applied to 10x 1.3 million neurons"
+author: "Vincent J. Carey, stvjc at channing.harvard.edu"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{tenXplore: ontology for scRNA-seq, applied to 10x 1.3 million neurons}
+  %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::pdf_document:
+    toc: yes
+    number_sections: yes
+  BiocStyle::html_document:
+    highlight: pygments
+    number_sections: yes
+    theme: united
+    toc: yes
+---
+
+```{r setupp,echo=FALSE,results="hide"}
+suppressWarnings({
+suppressPackageStartupMessages({
+library(tenXplore)
+})
+})
+```
+
+# Introduction
+
+This package is intended to illustrate the role of formal
+ontology in the analysis of single-cell RNA-seq experiments.
+
+We anticipate that both unsupervised and supervised methods
+of statistical learning
+will be useful.  
+
+- The 10x 1.3 million neuron dataset primarily
+invites unsupervised analysis, as no anatomical or other
+structural details are provided along with single-cell expression
+measures.  
+- Other studies that include details on anatomic source
+or other non-transcriptomic features of cellular identity
+would be amenable to supervised analysis, which will
+benefit from standardization of metadata about experimental
+factors and anatomic structures.
+
+# Basic operations based on redland with OWL
+
+This package ships with the OWL representation of the Cell Ontology.
+This is imported as RDF using `r CRANpkg("redland")`.  
+```{r useCO}
+library(tenXplore)
+co = buildCellOntSupport()
+co
+```
+At this time,
+elementary manipulations of
+the ontology involve collecting the children, siblings, or labels for given
+URIs.
+```{r useCO2}
+cochil = children_URL("<http://purl.obolibrary.org/obo/CL_0000540>", 
+    model=getModel(co), world=getWorld(co))
+cochil
+label_URL("<http://purl.obolibrary.org/obo/CL_0000540>", 
+    model=getModel(co), world=getWorld(co))
+siblings_URL("<http://purl.obolibrary.org/obo/CL_0000540>", 
+    model=getModel(co), world=getWorld(co))
+```
+
+# Application: finding genes annotated to neuron subtypes
+
+We focus on mouse.  The neuron subtypes identified as
+OWL subclasses of "neuron" have names
+```{r getcl}
+cleanNames = function(tset) {
+ tset@cleanFrame$clean
+}
+cleanNames(cochil)
+```
+
+There is no formal linkage at present between terms
+of Cell Ontology and those of Gene Ontology.  Research
+on inference of tissue of origin from expression 
+signatures has led to accurate classifiers (Lee, Krishnan, Troyanskaya) and
+applications in cell mixture deconvolution (Houseman).  
+Formal work in ontology bridging has been described but the
+specific task of mapping from Cell Ontology terms
+to Gene Ontology terms has not culminated in any
+programmatically available resource.
+
+We apply approximate pattern matching (agrep in R) to
+find gene ontology terms that are apparently relevant to
+cell type vocabulary terms of interest.
+
+
+
