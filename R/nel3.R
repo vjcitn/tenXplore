@@ -91,7 +91,10 @@ tags$head(
      dataTableOutput("counts")
      ),
     tabPanel("Comments",
-     helpText(a("foo", href="bar"),p("i don't know"))
+     helpText("Source for this package is at the ", a("tenXplore",
+      href="http://github.com/vjcitn/tenXplore"), " repository."),
+     helpText("10x data are obtained using the ", a("restfulSE", href="http://github.com/vjcitn/restfulSE")," package.  The HDF5 server technology is used to provide data on request; server hosted using resources provided by National Cancer Institute grant U01 CA214846-01"),
+     helpText("OWL documents for Cell Ontology and Experimental Factor Ontology are included with tenXplore package; processing using the", a("redland", href="https://cran.r-project.org/package=redland"), "package.")
      )
     )
    )
@@ -142,6 +145,7 @@ tags$head(
    syms = make.names(rowData(strs$finse)$symbol, unique=TRUE)
    dat = data.frame(gene=syms, rowmn=rowMeans(dat), rowsd=rowSds(dat), dat)
    colnames(dat) = c("gene", "rowmn", "rowsd", as.character(1:input$nsamp))
+   if (ncol(dat)>200) dat= dat[,1:3]
    dat
    })
   output$pcs = renderPlot({
