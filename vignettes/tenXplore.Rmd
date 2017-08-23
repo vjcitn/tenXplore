@@ -21,6 +21,8 @@ output:
 suppressWarnings({
 suppressPackageStartupMessages({
 library(tenXplore)
+library(org.Mm.eg.db)
+library(org.Hs.eg.db)
 })
 })
 ```
@@ -34,7 +36,7 @@ We anticipate that both unsupervised and supervised methods
 of statistical learning
 will be useful.  
 
-- The 10x 1.3 million neuron dataset primarily
+- The [10x 1.3 million neuron dataset](https://community.10xgenomics.com/t5/10x-Blog/Our-1-3-million-single-cell-dataset-is-ready-to-download/ba-p/276) primarily
 invites unsupervised analysis, as no anatomical or other
 structural details are provided along with single-cell expression
 measures.  
@@ -44,9 +46,23 @@ would be amenable to supervised analysis, which will
 benefit from standardization of metadata about experimental
 factors and anatomic structures.
 
-# Basic operations based on redland with OWL
+## An enumeration of cell types
 
-This package ships with the OWL representation of the Cell Ontology.
+<!--
+label_URL("<http://www.ebi.ac.uk/efo/EFO_0000324>", getModel(ee), getWorld(ee))
+$c
+[1] "\"cell type\""
+-->
+
+We used the [Experimental Factor Ontology](https://www.ebi.ac.uk/efo/) 'cell type' class ([EFO_0000324](https://www.ebi.ac.uk/ols/ontologies/efo/terms?iri=http%3A%2F%2Fwww.ebi.ac.uk%2Fefo%2FEFO_0000324)) to obtain
+an enumeration of cell types.  As of August 22 2017 it is an open question
+whether [Cell Ontology](http://obofoundry.org/ontology/cl.html) should be used for this purpose.  The author's
+subjective impression is that EFO has a simpler collection of terms for cell types,
+while Cell Ontology has a better collection of terms for types of neurons.
+
+## Basic operations based on redland with OWL
+
+This package ships with the OWL representation of the [Cell Ontology](http://obofoundry.org/ontology/cl.html).
 This is imported as RDF using `r CRANpkg("redland")`.  
 ```{r useCO}
 library(tenXplore)
@@ -78,6 +94,11 @@ cleanNames = function(tset) {
 cleanNames(cochil)
 ```
 
+We would like to see if the expression data would allow us to discriminate
+neurons of these different types.
+
+## Bridging from Cell Ontology to mouse genes
+
 There is no formal linkage at present between terms
 of Cell Ontology and those of Gene Ontology.  Research
 on inference of tissue of origin from expression 
@@ -90,7 +111,29 @@ programmatically available resource.
 
 We apply approximate pattern matching (agrep in R) to
 find gene ontology terms that are apparently relevant to
-cell type vocabulary terms of interest.
+cell type vocabulary terms of interest.  These are then
+mapped to gene annotation.  Simple (non-vectorized)
+functions that accomplish this in an organism-specific
+are straightforward using the OrgDb packages.  We
+serialized all GO terms for convenience with this package,
+in the data object `allGOterms`.
+
+```{r lkfuns}
+cellTypeToGO = function(celltypeString, ...) {
+ allGOterms[agrep(celltypeString, allGOterms[,2],...),]
+ }
+cellTypeToGenes = function(celltypeString, orgDb, cols=c("ENSEMBL", "SYMBOL"),...) {
+ g = cellTypeToGO(celltypeString, ...)
+ na.omit(select(orgDb, keys=g$GOID, keytype="GO", columns=cols))
+}
+library(tenXplore)
+data(allGOterms)
+cellTypeToGO("serotonergic neuron")
+cellTypeToGenes("serotonergic neuron", orgDb=org.Mm.eg.db)
+cellTypeToGenes("serotonergic neuron", orgDb=org.Hs.eg.db)
+```
+
+## Discrimination of neuron types: exploratory multivariate analysis
 
 
 
