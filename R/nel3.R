@@ -59,12 +59,12 @@ tags$head(
   sidebarLayout(
    sidebarPanel(
     helpText(h3("Ontology-based gene filtering for 10x 1.3 million dataset")),
-    helpText(strong("Cell type (top level) selection")," -- on click a dropdown is produced and multiple",
-      "cell type names from Cell Ontology are available.  Use command key to add selections individually.  You can also delete selections from the box by reclicking selected items."),
+    helpText(strong("Cell type (top level) selection"),
+      "Use command key to add selections individually.  You can also delete selections from the box by reclicking selected items."),
     selectInput("topLevel", "Type", choices=vec, selected="neuron",
          multiple=TRUE, selectize=FALSE, size=4),
-    helpText(strong("Cell subtype selection")," -- on click a dropdown is produced and multiple",
-      "cell type names from Cell Ontology are available, annotated as subclasses of top level selections."),
+    helpText(strong("Cell subtype selection"),
+      "Cell subtypes obtained using subclasses of top level selections."),
     uiOutput("secLevUI"),
     selectInput("trans", "Transformation", choices=c("ident.", "log(x+1)"),
           selected="log(x+1)", selectize=FALSE),
@@ -77,6 +77,7 @@ tags$head(
    tabsetPanel(
     tabPanel("PCA", 
       plotOutput("pcs"),
+#      plotlyOutput("pcs2"),
       tableOutput("def")
         ),
     tabPanel("Cell:~:GO",
@@ -136,7 +137,9 @@ tags$head(
    allg = godtSetup()$genes
    featinds = match(allg, rowData(inSE)$symbol)
    validate(need(length(featinds)>0, "no expression data for this subtype, please revise"))
+   showNotification(paste("acquiring ", input$nsamp, " records from HDF5 server"), id="acqnote")
    dat=t(assay(finse <- inSE[na.omit(featinds),1:input$nsamp]))
+   removeNotification(id="acqnote")
    list(finse=finse, data=dat)
    })
   output$counts = renderDataTable({
@@ -149,9 +152,6 @@ tags$head(
    dat
    })
   output$pcs = renderPlot({
-#   allg = godtSetup()$genes
-#   featinds = match(allg, rowData(inSE)$symbol)
-#   validate(need(length(featinds)>0, "no expression data for this subtype, please revise"))
    strs = getData()
    data = strs$data
    finse = strs$finse
@@ -165,6 +165,21 @@ tags$head(
        main=paste("# genes = ", nrow(finse), ", # cells = ", ncol(finse)))
      )
    })
+#  output$pcs2 = renderPlotly({
+#   strs = getData()
+#   data = strs$data
+#   finse = strs$finse
+#   if (input$trans == "log(x+1)") data = log(data+1)
+#   syms = make.names(rowData(finse)$symbol, unique=TRUE)
+#   colnames(data) = syms
+#   pcs = prcomp(data)
+##varname.size=6, alpha=.2, labels.size=1, var.scale=1
+#   suppressWarnings(  # arrow warnings
+#     ggplotly(ggbiplot(pcs, xlabs=rep(".", nrow(data)), choices=c(input$pc1, input$pc2),
+#        varname.size=6, alpha=.2, labels.size=1, var.scale=1) + ggtitle(
+#       paste("# genes = ", nrow(finse), ", # cells = ", ncol(finse))))
+#     )
+#   })
   output$godt = renderDataTable( godtSetup()$dataframe )
   output$thedt = renderDataTable({
    validate(need(input$topLevel, "select top level term"))

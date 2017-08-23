@@ -116,3 +116,18 @@ children_URL = function(urlstring="<http://www.ebi.ac.uk/efo/EFO_0000787>", mode
                 qualTerms=as.character(labs[o])))
 }
 
+#' utilities for approximate matching of cell type terms to GO categories and annotations
+#' @param celltypeString character atom to be used to search GO terms using 
+#' \code{\link[base]{agrep}}
+#' @param \dots additional arguments to \code{\link[base]{agrep}}
+#' @export
+cellTypeToGO = function(celltypeString, ...) {
+ allGOterms[agrep(celltypeString, allGOterms[,2],...),]
+ }
+#' @rdname cellTypeToGO
+#' @export
+cellTypeToGenes = function(celltypeString, orgDb, cols=c("ENSEMBL", "SYMBOL"),...) {
+ g = cellTypeToGO(celltypeString, ...)
+ na.omit(AnnotationDbi::select(orgDb, keys=g$GOID, keytype="GO", columns=cols))
+}
+

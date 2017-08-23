@@ -27,6 +27,14 @@ library(org.Hs.eg.db)
 })
 ```
 
+# Executive summary
+
+The tenXplore package includes prototypical code to facilitate
+the coding of an ontology-driven visualizer of transcriptomic
+patterns in single-cell RNA-seq studies.
+
+![dashsnap](dashboard.png)
+
 # Introduction
 
 This package is intended to illustrate the role of formal
@@ -124,7 +132,7 @@ cellTypeToGO = function(celltypeString, ...) {
  }
 cellTypeToGenes = function(celltypeString, orgDb, cols=c("ENSEMBL", "SYMBOL"),...) {
  g = cellTypeToGO(celltypeString, ...)
- na.omit(select(orgDb, keys=g$GOID, keytype="GO", columns=cols))
+ na.omit(AnnotationDbi::select(orgDb, keys=g$GOID, keytype="GO", columns=cols))
 }
 library(tenXplore)
 data(allGOterms)
@@ -135,5 +143,14 @@ cellTypeToGenes("serotonergic neuron", orgDb=org.Hs.eg.db)
 
 ## Discrimination of neuron types: exploratory multivariate analysis
 
-
+At this point the API for selecting cell types, bridging to gene
+sets, and acquiring expression data, is not well-modularized.  Thus
+the best ways to get a feel for it are to use tenXplore() function,
+and to read the source code.  In brief, we often fail to find
+GO terms that approximately match, as strings, Cell Ontology
+terms corresponding to cell subtypes.  On the other hand, if we
+match on cell types, we get very large numbers of matches, which
+will need to be filtered.  We will introduce tools for generating
+additional RDF to improve gene harvesting in real time.  But the
+associated statements will need to be curated.
 
