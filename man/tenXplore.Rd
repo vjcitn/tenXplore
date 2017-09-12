@@ -6,6 +6,12 @@
 \usage{
 tenXplore()
 }
+\value{
+shiny app invocation
+}
 \description{
 basic shiny interface to 10x data with ontological setup for cell selection
+}
+\examples{
+tenXplore
 }

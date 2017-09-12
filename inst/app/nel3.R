@@ -1,15 +1,40 @@
-#' attempt construction of a TermSet with children of a vector of terms
-#' @param TermSet instance of \code{\link[ontoProc]{TermSet-class}}
-#' @param choices vector of strings that should be present in cleanFrame component of \code{TermSet}
-#' @param rrdfsupp instance of \code{\link[ontoProc]{RrdfSupport-class}}
-#' @return TermSet instance
-#' @examples
-#' require("ontoProc")
-#' .efosupp = buildEFOOntSupport()
-#' cc = children_URL("<http://www.ebi.ac.uk/efo/EFO_0000324>", .efosupp@model, .efosupp@world)
-#' cc
-#' secLevGen(cc, "B cell", .efosupp)
+#' @exportClass rrdfSupport
+setClass("rrdfSupport", representation(model="ANY", world="ANY"))
+setMethod("show", "rrdfSupport", function(object) {
+  cat("rrdfSupport instance from tenXplore\n")
+  cat(sprintf("there are %d class statements\n", countClasses(object)))
+})
+
+#' accessors for rrdfSupport
 #' @export
+getModel = function(x) x@model
+#' @rdname getModel
+#' @aliases getWorld
+#' @export
+getWorld = function(x) x@world
+
+#' read and model the Experimental Factor Ontology as shipped in OWL and parsed in redland
+#' @export
+buildEFOOntSupport = function() {
+ EFworld <- new("World")
+ EFstorage <- new("Storage", EFworld, "hashes", name="", options="hash-type='memory'")
+ EFmodel <- new("Model", world=EFworld, EFstorage, options="")
+ EFparser <- new("Parser", EFworld)
+ parseFileIntoModel(EFparser, EFworld, system.file("owl/efo.owl", package="tenXplore"), EFmodel)
+ new("rrdfSupport", model=EFmodel, world=EFworld)
+}
+
+#' read and model the Cell Ontology as shipped in OWL and parsed in redland
+#' @export
+buildCellOntSupport = function() {
+ CLworld <- new("World")
+ CLstorage <- new("Storage", CLworld, "hashes", name="", options="hash-type='memory'")
+ CLmodel <- new("Model", world=CLworld, CLstorage, options="")
+ CLparser <- new("Parser", CLworld)
+ parseFileIntoModel(CLparser, CLworld, system.file("owl/cl.owl", package="tenXplore"), CLmodel)
+ new("rrdfSupport", model=CLmodel, world=CLworld)
+}
+
 secLevGen = function( TermSet, choices, rrdfsupp ) {
    inds = match(choices, TermSet@cleanFrame$clean)
    set = lapply(inds, function(x) 
@@ -33,7 +58,7 @@ tags$head(
   ),
   sidebarLayout(
    sidebarPanel(
-    helpText(h3("Ontology-based gene filtering for 10x 1.3 million neuron dataset")),
+    helpText(h3("Ontology-based gene filtering for 10x 1.3 million dataset")),
     helpText(strong("Cell type (top level) selection"),
       "Use command key to add selections individually.  You can also delete selections from the box by reclicking selected items."),
     selectInput("topLevel", "Type", choices=vec, selected="neuron",
@@ -43,7 +68,7 @@ tags$head(
     uiOutput("secLevUI"),
     selectInput("trans", "Transformation", choices=c("ident.", "log(x+1)"),
           selected="log(x+1)", selectize=FALSE),
-    numericInput("nsamp", "# 10x samples", value=400, min=100, max=1306127, step=100),
+    numericInput("nsamp", "# 10x samples", value=400, min=100, max=3000, step=50),
     numericInput("pc1", "pc axis 1", 1, min=1, max=10, step=1),
     numericInput("pc2", "pc axis 2", 2, min=2, max=10, step=1),
     numericInput("expa", "biplot expand setting", .9, min=.5, max=1.1, step=.1)
@@ -77,8 +102,6 @@ tags$head(
   )
  )
  server = function(input, output) {
-  data("CellTypes")
-  data("allGOterms", package="ontoProc")
   output$def = renderTable( {
      validate(need(input$secLevel, ""))
      goinds = lapply(c(input$secLevel), function(x) agrep( x, allGOterms[,2] ) ) 
@@ -179,24 +202,11 @@ runApp(app)
 }
 
 #' basic shiny interface to 10x data with ontological setup for cell selection
-#' @import ontoProc
-#' @import shiny
-#' @import AnnotationDbi
-#' @import org.Mm.eg.db
-#' @importClassesFrom SummarizedExperiment RangedSummarizedExperiment
-#' @importClassesFrom restfulSE RESTfulSummarizedExperiment
-#' @importFrom SummarizedExperiment rowData
-#' @importFrom restfulSE se1.3M
-#' @importFrom stats prcomp biplot na.omit
-#' @importFrom matrixStats rowSds
-#' @return shiny app invocation
-#' @examples
-#' tenXplore
 #' @export
 tenXplore = function() {
-if (!exists("remouse")) remouse = se1.3M()
-data("allGOterms", package="ontoProc")
+if (!exists("remouse")) remouse <<- se1.3M()
+data("allGOterms")
 data("CellTypes")
 clsupp = buildCellOntSupport()
-nestedL(slot(CellTypes, "cleanFrame")$clean, clsupp, remouse)
+nestedL(CellTypes@cleanFrame$clean, clsupp, remouse)
 }
