@@ -1,25 +1,18 @@
-
 library(restfulSE)
+library(org.Mm.eg.db)
 library(tenXplore)
-data("allGOterms")
-data("CellTypes")
-clsupp = buildCellOntSupport()
+library(AnnotationDbi)
+library(SummarizedExperiment)
 
-secLevGen = function( TermSet, choices, rrdfsupp ) {
-   inds = match(choices, TermSet@cleanFrame$clean)
-   set = lapply(inds, function(x) 
-     try(children_URL(TermSet@cleanFrame$url[x], model=getModel(rrdfsupp), world=getWorld(rrdfsupp)), silent=TRUE))
-   chk = sapply(set, function(x) inherits(x, "try-error"))
-   if (any(chk)) set = set[-which(chk)]
-   if (length(set)==0) return(NULL)
-   if (length(set)==1) return(set[[1]])
-   do.call(c, set)
-}
+inSE = se1.3M()
+
+data("allGOterms", package="ontoProc")
+data("CellTypes")
+clsupp = getCellOnto()
 
  server = function(input, output) {
- showNotification(paste("establishing HDF5 server interface"), id="intfnote")
- if (!exists("inSE")) inSE <<- se1.3M()
- removeNotification(id="intfnote")
+  data("CellTypes")
+  data("allGOterms", package="ontoProc")
   output$def = renderTable( {
      validate(need(input$secLevel, ""))
      goinds = lapply(c(input$secLevel), function(x) agrep( x, allGOterms[,2] ) ) 
@@ -30,7 +23,7 @@ secLevGen = function( TermSet, choices, rrdfsupp ) {
      } )
   output$getSecLNum = renderText({
    validate(need(input$topLevel, "select top level term"))
-   ss = secLevGen(CellTypes, input$topLevel, clsupp)
+   ss = secLevGen(input$topLevel, clsupp)
    validate(need(!is.null(ss), "no subtypes; please choose another cell type above"))
    allchoices = ss@cleanFrame[,"clean"]
    paste(as.character(length(allchoices)), " second level options")
@@ -101,19 +94,17 @@ secLevGen = function( TermSet, choices, rrdfsupp ) {
   output$godt = renderDataTable( godtSetup()$dataframe )
   output$thedt = renderDataTable({
    validate(need(input$topLevel, "select top level term"))
-   ss = secLevGen(CellTypes, input$topLevel, clsupp)
+   ss = secLevGen(input$topLevel, clsupp)
    allchoices = ss@cleanFrame[,"clean"]
    validate(need(input$secLevel, "select second order term"))
    as.data.frame(ss@cleanFrame)
    })
   output$secLevUI = renderUI({
    validate(need(input$topLevel, "select top level term"))
-   showNotification("acquiring subtype terms", id="subtnote")
-   ss = secLevGen(CellTypes, input$topLevel, clsupp)
-   removeNotification(id="subtnote")
+   ss = secLevGen(input$topLevel, clsupp)
    validate(need(!is.null(ss), "no subtypes; please choose another cell type above"))
    allchoices = ss@cleanFrame[,"clean"]
-   selectInput("secLevel", "Subtype", choices=allchoices, size=4, multiple=TRUE,
+   selectInput("secLevel", "Subtype", choices=unname(allchoices), size=4, multiple=TRUE,
       selectize=FALSE, selected=c("dopaminergic neuron", "GABAergic neuron"))
    })
  }

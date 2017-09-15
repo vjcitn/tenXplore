@@ -7,3 +7,11 @@
 #' data(CellTypes)
 #' head(slot(CellTypes, "cleanFrame"))
 "CellTypes"
+#' tenx500: serialized full SummarizedExperiment for demonstration
+#' @docType data
+#' @format SummarizedExperiment instance
+#' @source restfulSE se1.3M pared down to 500 samples, assay materialized and assigned
+#' @examples
+#' data(tenx500)
+#' tenx500
+"tenx500"

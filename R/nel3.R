@@ -1,30 +1,9 @@
-#' attempt construction of a TermSet with children of a vector of terms
-#' @param TermSet instance of \code{\link[ontoProc]{TermSet-class}}
-#' @param choices vector of strings that should be present in cleanFrame component of \code{TermSet}
-#' @param rrdfsupp instance of \code{\link[ontoProc]{RrdfSupport-class}}
-#' @return TermSet instance
-#' @examples
-#' require("ontoProc")
-#' .efosupp = buildEFOOntSupport()
-#' cc = children_URL("<http://www.ebi.ac.uk/efo/EFO_0000324>", .efosupp@model, .efosupp@world)
-#' cc
-#' secLevGen(cc, "B cell", .efosupp)
-#' @export
-secLevGen = function( TermSet, choices, rrdfsupp ) {
-   inds = match(choices, TermSet@cleanFrame$clean)
-   set = lapply(inds, function(x) 
-     try(children_URL(TermSet@cleanFrame$url[x], model=getModel(rrdfsupp), world=getWorld(rrdfsupp)), silent=TRUE))
-   chk = sapply(set, function(x) inherits(x, "try-error"))
-   if (any(chk)) set = set[-which(chk)]
-   if (length(set)==0) return(NULL)
-   if (length(set)==1) return(set[[1]])
-   do.call(c, set)
-}
 
-nestedL = function(vec, clsupp, inSE) { 
+nestedL = function(vec, clsupp, inSE, inmem) { 
+maxnsamp = ncol(inSE)
+
  ui = fluidPage(
-
-tags$head(
+  tags$head(
     tags$style(HTML("
       .shiny-output-error-validation {
         color: green;
@@ -43,7 +22,7 @@ tags$head(
     uiOutput("secLevUI"),
     selectInput("trans", "Transformation", choices=c("ident.", "log(x+1)"),
           selected="log(x+1)", selectize=FALSE),
-    numericInput("nsamp", "# 10x samples", value=400, min=100, max=1306127, step=100),
+    numericInput("nsamp", "# 10x samples", value=400, min=100, max=maxnsamp, step=100),
     numericInput("pc1", "pc axis 1", 1, min=1, max=10, step=1),
     numericInput("pc2", "pc axis 2", 2, min=2, max=10, step=1),
     numericInput("expa", "biplot expand setting", .9, min=.5, max=1.1, step=.1)
@@ -77,6 +56,8 @@ tags$head(
   )
  )
  server = function(input, output) {
+  CellTypes = NULL
+  allGOterms = NULL
   data("CellTypes")
   data("allGOterms", package="ontoProc")
   output$def = renderTable( {
@@ -89,7 +70,7 @@ tags$head(
      } )
   output$getSecLNum = renderText({
    validate(need(input$topLevel, "select top level term"))
-   ss = secLevGen(CellTypes, input$topLevel, clsupp)
+   ss = secLevGen( input$topLevel, clsupp)
    validate(need(!is.null(ss), "no subtypes; please choose another cell type above"))
    allchoices = ss@cleanFrame[,"clean"]
    paste(as.character(length(allchoices)), " second level options")
@@ -114,9 +95,11 @@ tags$head(
    allg = godtSetup()$genes
    featinds = match(allg, rowData(inSE)$symbol)
    validate(need(length(featinds)>0, "no expression data for this subtype, please revise"))
-   showNotification(paste("acquiring ", input$nsamp, " records from HDF5 server"), id="acqnote")
+   if (!inmem) 
+       showNotification(paste("acquiring ", input$nsamp, 
+            " records from HDF5 server"), id="acqnote")
    dat=t(assay(finse <- inSE[na.omit(featinds),1:input$nsamp]))
-   removeNotification(id="acqnote")
+   if (!inmem) removeNotification(id="acqnote")
    list(finse=finse, data=dat)
    })
   output$counts = renderDataTable({
@@ -160,16 +143,16 @@ tags$head(
   output$godt = renderDataTable( godtSetup()$dataframe )
   output$thedt = renderDataTable({
    validate(need(input$topLevel, "select top level term"))
-   ss = secLevGen(CellTypes, input$topLevel, clsupp)
+   ss = secLevGen(input$topLevel, clsupp)
    allchoices = ss@cleanFrame[,"clean"]
    validate(need(input$secLevel, "select second order term"))
    as.data.frame(ss@cleanFrame)
    })
   output$secLevUI = renderUI({
    validate(need(input$topLevel, "select top level term"))
-   ss = secLevGen(CellTypes, input$topLevel, clsupp)
+   ss = secLevGen(input$topLevel, clsupp)
    validate(need(!is.null(ss), "no subtypes; please choose another cell type above"))
-   allchoices = ss@cleanFrame[,"clean"]
+   allchoices = unname(ss@cleanFrame[,"clean"])
    selectInput("secLevel", "Subtype", choices=allchoices, size=4, multiple=TRUE,
       selectize=FALSE, selected=c("dopaminergic neuron", "GABAergic neuron"))
    })
@@ -189,14 +172,19 @@ runApp(app)
 #' @importFrom restfulSE se1.3M
 #' @importFrom stats prcomp biplot na.omit
 #' @importFrom matrixStats rowSds
+#' @param remouse optional SummarizedExperiment instance, assay data in memory
 #' @return shiny app invocation
 #' @examples
 #' tenXplore
 #' @export
-tenXplore = function() {
-if (!exists("remouse")) remouse = se1.3M()
-data("allGOterms", package="ontoProc")
-data("CellTypes")
-clsupp = buildCellOntSupport()
-nestedL(slot(CellTypes, "cleanFrame")$clean, clsupp, remouse)
+tenXplore = function(remouse) {
+  inmem = TRUE
+  if (missing(remouse)) {
+    remouse = se1.3M()
+    inmem = FALSE
+    }
+  data("allGOterms", package="ontoProc")
+  data("CellTypes")
+  clsupp = getCellOnto()
+  nestedL(slot(CellTypes, "cleanFrame")$clean, clsupp, remouse, inmem)
 }

@@ -4,7 +4,10 @@
 \alias{tenXplore}
 \title{basic shiny interface to 10x data with ontological setup for cell selection}
 \usage{
-tenXplore()
+tenXplore(remouse)
+}
+\arguments{
+\item{remouse}{optional SummarizedExperiment instance, assay data in memory}
 }
 \value{
 shiny app invocation
