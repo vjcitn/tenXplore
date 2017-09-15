@@ -82,3 +82,7 @@ will need to be filtered.  We will introduce tools for generating
 additional RDF to improve gene harvesting in real time.  But the
 associated statements will need to be curated.
 
+The new package at github.com:vjcitn/ontoProc includes facilities
+for working with a variety of ontologies, and tenXplore will
+evolve to improve flexibility of selections and visualizations
+afforded by the `r CRANpkg("ontologyIndex")` and `r CRANpkg("ontologyPlot")`.
