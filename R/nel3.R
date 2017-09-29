@@ -59,10 +59,11 @@ maxnsamp = ncol(inSE)
   CellTypes = NULL
   allGOterms = NULL
   data("CellTypes")
-  data("allGOterms", package="ontoProc")
+#  data("allGOterms", package="ontoProc") # does not yield accessible data
+  load(system.file("data/allGOterms.rda",package="ontoProc"))
   output$def = renderTable( {
      validate(need(input$secLevel, ""))
-     goinds = lapply(c(input$secLevel), function(x) agrep( x, allGOterms[,2] ) ) 
+     goinds = lapply(input$secLevel, function(x) agrep( x, allGOterms[,2] ) ) 
      ll = sapply(goinds, length)
      validate(need(sum(unlist(ll))>0, "no matches, please try another term"))
      tabs = lapply(goinds, function(x) allGOterms[x,])
