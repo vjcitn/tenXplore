@@ -27,15 +27,13 @@ library(org.Hs.eg.db)
 })
 ```
 
-# Executive summary
+# Introduction/Executive summary
 
 The tenXplore package includes prototypical code to facilitate
 the coding of an ontology-driven visualizer of transcriptomic
 patterns in single-cell RNA-seq studies.
 
 ![dashsnap](dashboard.png)
-
-# Introduction
 
 This package is intended to illustrate the role of formal
 ontology in the analysis of single-cell RNA-seq experiments.
@@ -72,17 +70,25 @@ cellTypeToGenes("serotonergic neuron", gotab=allGOterms, orgDb=org.Hs.eg.db)
 ## Discrimination of neuron types: exploratory multivariate analysis
 
 At this point the API for selecting cell types, bridging to gene
-sets, and acquiring expression data, is not well-modularized.  Thus
-the best ways to get a feel for it are to use tenXplore() function,
-and to read the source code.  In brief, we often fail to find
+sets, and acquiring expression data, is not well-modularized,
+but extensive activity in these areas in new Bioconductor
+packages will foster enhancements for this application.  
+
+In brief, we often fail to find
 GO terms that approximately match, as strings, Cell Ontology
-terms corresponding to cell subtypes.  On the other hand, if we
+terms corresponding to cell types and subtypes.  Thus the
+cell type to gene mapping is very spotty and the
+app has nothing to show.  
+
+On the other hand, if we
 match on cell types, we get very large numbers of matches, which
 will need to be filtered.  We will introduce tools for generating
-additional RDF to improve gene harvesting in real time.  But the
-associated statements will need to be curated.
+additional type to gene harvesting/filtering in real time.  
 
-The new package at github.com:vjcitn/ontoProc includes facilities
+# Next steps
+
+The `r Biocpkg("ontoProc")` package includes facilities
 for working with a variety of ontologies, and tenXplore will
 evolve to improve flexibility of selections and visualizations
-afforded by the `r CRANpkg("ontologyIndex")` and `r CRANpkg("ontologyPlot")`.
+afforded by the `r CRANpkg("ontologyIndex")` 
+and `r CRANpkg("ontologyPlot")` packages.

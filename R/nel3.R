@@ -169,7 +169,7 @@ runApp(app)
 #' @import org.Mm.eg.db
 #' @importClassesFrom SummarizedExperiment RangedSummarizedExperiment
 #' @importClassesFrom restfulSE RESTfulSummarizedExperiment
-#' @importFrom SummarizedExperiment rowData
+#' @importFrom SummarizedExperiment rowData assay
 #' @importFrom restfulSE se1.3M
 #' @importFrom stats prcomp biplot na.omit
 #' @importFrom matrixStats rowSds

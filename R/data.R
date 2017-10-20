@@ -1,4 +1,6 @@
 #' cellTypes: data.frame with ids and terms
+#' @import methods
+#' @importFrom methods slot
 #' @importFrom utils data
 #' @docType data
 #' @format TermSet instance
