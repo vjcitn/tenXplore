@@ -4,7 +4,12 @@ library(tenXplore)
 library(AnnotationDbi)
 library(SummarizedExperiment)
 
+# following reflects fact that se1.3M ExperimentHub element
+# lacks rowData!
+
 inSE = se1.3M()
+okSE = se100k()
+rowData(inSE) = rowData(okSE)
 
 data("allGOterms", package="ontoProc")
 data("CellTypes")
@@ -49,7 +54,7 @@ clsupp = getCellOnto()
    featinds = match(allg, rowData(inSE)$symbol)
    validate(need(length(featinds)>0, "no expression data for this subtype, please revise"))
    showNotification(paste("acquiring ", input$nsamp, " records from HDF5 server"), id="acqnote")
-   dat=t(assay(finse <- inSE[na.omit(featinds),1:input$nsamp]))
+   dat=t(as.matrix(assay(finse <- inSE[na.omit(featinds),1:input$nsamp])))
    removeNotification(id="acqnote")
    list(finse=finse, data=dat)
    })
@@ -76,21 +81,6 @@ clsupp = getCellOnto()
        main=paste("# genes = ", nrow(finse), ", # cells = ", ncol(finse)))
      )
    })
-#  output$pcs2 = renderPlotly({
-#   strs = getData()
-#   data = strs$data
-#   finse = strs$finse
-#   if (input$trans == "log(x+1)") data = log(data+1)
-#   syms = make.names(rowData(finse)$symbol, unique=TRUE)
-#   colnames(data) = syms
-#   pcs = prcomp(data)
-##varname.size=6, alpha=.2, labels.size=1, var.scale=1
-#   suppressWarnings(  # arrow warnings
-#     ggplotly(ggbiplot(pcs, xlabs=rep(".", nrow(data)), choices=c(input$pc1, input$pc2),
-#        varname.size=6, alpha=.2, labels.size=1, var.scale=1) + ggtitle(
-#       paste("# genes = ", nrow(finse), ", # cells = ", ncol(finse))))
-#     )
-#   })
   output$godt = renderDataTable( godtSetup()$dataframe )
   output$thedt = renderDataTable({
    validate(need(input$topLevel, "select top level term"))
@@ -100,8 +90,10 @@ clsupp = getCellOnto()
    as.data.frame(ss@cleanFrame)
    })
   output$secLevUI = renderUI({
+   showNotification(paste("setting up"), id="setupnote")
    validate(need(input$topLevel, "select top level term"))
    ss = secLevGen(input$topLevel, clsupp)
+   removeNotification(id="setupnote")
    validate(need(!is.null(ss), "no subtypes; please choose another cell type above"))
    allchoices = ss@cleanFrame[,"clean"]
    selectInput("secLevel", "Subtype", choices=unname(allchoices), size=4, multiple=TRUE,
