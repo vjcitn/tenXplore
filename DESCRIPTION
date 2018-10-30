@@ -1,7 +1,7 @@
 Package: tenXplore
 Title: ontological exploration of scRNA-seq of 1.3 million mouse neurons from 10x genomics
 Description: Perform ontological exploration of scRNA-seq of 1.3 million mouse neurons from 10x genomics.
-Version: 1.3.1
+Version: 1.4.0
 Author: Vince Carey
 Suggests: org.Hs.eg.db, testthat, knitr
 Depends: R (>= 3.4), shiny, restfulSE (>= 0.99.12)
