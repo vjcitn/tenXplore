@@ -4,7 +4,9 @@
 \name{tenx500}
 \alias{tenx500}
 \title{tenx500: serialized full SummarizedExperiment for demonstration}
-\format{SummarizedExperiment instance}
+\format{
+SummarizedExperiment instance
+}
 \source{
 restfulSE se1.3M pared down to 500 samples, assay materialized and assigned
 }
