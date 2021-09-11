@@ -7,9 +7,9 @@ library(SummarizedExperiment)
 # following reflects fact that se1.3M ExperimentHub element
 # lacks rowData!
 
-inSE = se1.3M()
-okSE = se100k()
-rowData(inSE) = rowData(okSE)
+inSE = se1.3M()[,seq_len(100000)]  # emulate se100k
+#okSE = se100k()
+rowData(inSE) = rowData(inSE)
 
 data("allGOterms", package="ontoProc")
 data("CellTypes")
@@ -54,7 +54,8 @@ clsupp = getCellOnto()
    featinds = match(allg, rowData(inSE)$symbol)
    validate(need(length(featinds)>0, "no expression data for this subtype, please revise"))
    showNotification(paste("acquiring ", input$nsamp, " records from HDF5 server"), id="acqnote")
-   dat=t(as.matrix(assay(finse <- inSE[na.omit(featinds),1:input$nsamp])))
+   featinds = sort(as.numeric(na.omit(featinds)))  # new, seems to avoid 'bad slice' at HSDS
+   dat=t(as.matrix(assay(finse <- inSE[featinds,1:input$nsamp])))
    removeNotification(id="acqnote")
    list(finse=finse, data=dat)
    })
