@@ -8,7 +8,6 @@ apd = function() dirname(dir(system.file("app", package = "tenXplore"), full = T
 #' @import org.Mm.eg.db
 #' @importClassesFrom SummarizedExperiment RangedSummarizedExperiment
 #' @importFrom SummarizedExperiment rowData assay
-#' @importFrom restfulSE se1.3M
 #' @importFrom stats prcomp biplot na.omit
 #' @importFrom matrixStats rowSds
 #' @return shiny app invocation

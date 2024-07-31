@@ -1,4 +1,3 @@
-library(restfulSE)
 library(org.Mm.eg.db)
 library(tenXplore)
 library(AnnotationDbi)
