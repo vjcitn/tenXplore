@@ -12,7 +12,7 @@ rowData(inSE) = rowData(inSE)
 
 data("allGOterms", package="ontoProc")
 data("CellTypes")
-clsupp = getCellOnto()
+clsupp = getOnto("cellOnto")
 
  server = function(input, output) {
   data("CellTypes")
