@@ -7,9 +7,6 @@ vignette: >
   %\VignetteIndexEntry{tenXplore: ontology for scRNA-seq, applied to 10x 1.3 million neurons}
   %\VignetteEncoding{UTF-8}
 output:
-  BiocStyle::pdf_document:
-    toc: yes
-    number_sections: yes
   BiocStyle::html_document:
     highlight: pygments
     number_sections: yes

@@ -5,7 +5,7 @@ context("ontology processing")
 
 test_that("children compute", {
   library(ontoProc)
-  efoOnto = getEFOOnto()
+  efoOnto = getOnto("efoOnto")
   cc = children_TAG("EFO:0000324", efoOnto) 
   ss = secLevGen("B cell", efoOnto)
   cl = slot(ss, "cleanFrame")

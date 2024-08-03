@@ -4,7 +4,9 @@
 \name{CellTypes}
 \alias{CellTypes}
 \title{cellTypes: data.frame with ids and terms}
-\format{TermSet instance}
+\format{
+TermSet instance
+}
 \source{
 efo.owl, August 2017, subclasses of \url{http://www.ebi.ac.uk/efo/EFO_0000324}
 }
