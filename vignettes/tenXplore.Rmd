@@ -30,7 +30,7 @@ The tenXplore package includes prototypical code to facilitate
 the coding of an ontology-driven visualizer of transcriptomic
 patterns in single-cell RNA-seq studies.
 
-![dashsnap](dashboard.png)
+![dashsnap](https://github.com/vjcitn/tenXplore/blob/master/vignettes/dashboard.png)
 
 This package is intended to illustrate the role of formal
 ontology in the analysis of single-cell RNA-seq experiments.
