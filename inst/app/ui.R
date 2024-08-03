@@ -17,7 +17,7 @@ data("CellTypes", package="tenXplore")
 
 
 vec = slot(CellTypes, "cleanFrame")$clean
-clsupp = getCellOnto()
+clsupp = getOnto("cellOnto")
 
  ui = fluidPage(
 
